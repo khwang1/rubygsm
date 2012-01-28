@@ -37,11 +37,16 @@ class Modem
 		# we'll try: ttyS0, ttyUSB0, ttyACM0, ttyS1...
 		if port == :auto
 			@device, @port = catch(:found) do
-				0.upto(8) do |n|
-					["ttyS", "ttyUSB", "ttyACM"].each do |prefix|
+			  #[khw] only search through ttyUSB8 to ttyUSB0
+				8.downto(0) do |n|
+					["ttyUSB"].each do |prefix|
 						try_port = "/dev/#{prefix}#{n}"
 			
 						begin
+						  
+						  #[khw] print a message
+						  puts "[rubygsm]: try port #{try_port}"
+						  
 							# serialport args: port, baud, data bits, stop bits, parity
 							device = SerialPort.new(try_port, baud, 8, 1, SerialPort::NONE)
 							throw :found, [device, try_port]
@@ -56,6 +61,9 @@ class Modem
 				# tried all ports, nothing worked
 				raise AutoDetectError
 			end
+		
+		  #[khw] print a message
+			puts "[rubygsm]: found port #{@port}"
 		
 		# if the port was a port number or file
 		# name, initialize a serialport object
@@ -109,7 +117,9 @@ class Modem
 		# consistant, and the logs a bit more sane.
 		try_command "ATE0"      # echo off
 		try_command "AT+CMEE=1" # useful errors
-		try_command "AT+WIND=0" # no notifications
+		
+		#[khw]: AT+WIND command isn't supported by my Zoom modem, comment out this line
+		#try_command "AT+WIND=0" # no notifications
 		
 		# PDU mode isn't supported right now (although
 		# it should be, because it's quite simple), so
