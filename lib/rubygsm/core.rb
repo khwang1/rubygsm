@@ -152,6 +152,15 @@ module Gsm
       # it should be, because it's quite simple), so
       # switching to text mode (mode 1) is MANDATORY
       command "AT+CMGF=1"
+      
+      #select operator to AT&T mobility which is network code 310410
+      command "AT+COPS=0,2,\"310410\",2" #0=automatic selection, 2=numeric id, 310410, 2=current
+      
+      #select TE character set, which must be "IRA" for sending SMS to work
+      #IRA is International Reference Alphabet. 
+      #Setting CSCS to "IRA" is necessary for sending SMS to work. Occassionally, the setting is USC2 after
+      #powering up the modem
+      command "AT+CSCS=\"IRA\""
     end #initialize()
 
 
