@@ -53,6 +53,7 @@ module Gsm
               begin
 
                 #[khw] print a message
+                puts "[rubygsm]: try port #{try_port}"
                 Rails.logger.info "[rubygsm]: try port #{try_port}"
 
                 # serialport args: port, baud, data bits, stop bits, parity
@@ -69,12 +70,14 @@ module Gsm
           #[khw] on MAC, only search for cu.LJADeviceInterface*
           file_found = Dir.glob("/dev/cu.LJADeviceInterface*")
           if (file_found.empty?)
+            puts "[rubygsm]: /dev/cu.LJADeviceInterface* ports not found"
             Rails.logger.info "[rubygsm]: /dev/cu.LJADeviceInterface* ports not found"
           else
             begin
               try_port = file_found.first.to_s
 
               #[khw] print a message
+              puts "[rubygsm]: try port #{try_port}"
               Rails.logger.info "[rubygsm]: try port #{try_port}"
 
               # serialport args: port, baud, data bits, stop bits, parity
@@ -557,7 +560,7 @@ module Gsm
 
 
     def exclusive &blk
-      old_lock = nil
+      old_lock = nil #old_lock is a local variable
 
       begin
 
@@ -565,6 +568,8 @@ module Gsm
         # commands TO THIS MODDEM while this
         # block is working. this does not lock
         # threads, just the gsm device
+        #
+        # @locked_to is an instance variable
         if @locked_to and (@locked_to != Thread.current)
           log "Locked by #{@locked_to["name"]}, waiting..."
 
@@ -1096,12 +1101,16 @@ module Gsm
         #time_sent = parse_incoming_timestamp(timestamp)
         time_sent = timestamp
 
+=begin
         #convert "from" (sender's number) from ASCII to char
         from_in_char = Modem.convert_string_from_ascii_to_char(from)
         #convert "msg_text" from ACSII to char
         msg_text_in_char = Modem.convert_string_from_ascii_to_char(msg_text)
+=end
 
-        msg = Gsm::Incoming.new(self, from_in_char, time_sent, msg_text_in_char)
+
+        # msg = Gsm::Incoming.new(self, from_in_char, time_sent, msg_text_in_char)
+        msg = Gsm::Incoming.new(self, from, time_sent, msg_text)
         @incoming.push(msg)
 
         # skip over the messge line(s),
