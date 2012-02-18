@@ -54,7 +54,7 @@ module Gsm
 
                 #[khw] print a message
                 puts "[rubygsm]: try port #{try_port}"
-                Rails.logger.info "[rubygsm]: try port #{try_port}"
+                #Rails.logger.info "[rubygsm]: try port #{try_port}"
 
                 # serialport args: port, baud, data bits, stop bits, parity
                 device = SerialPort.new(try_port, baud, 8, 1, SerialPort::NONE)
@@ -71,14 +71,14 @@ module Gsm
           file_found = Dir.glob("/dev/cu.LJADeviceInterface*")
           if (file_found.empty?)
             puts "[rubygsm]: /dev/cu.LJADeviceInterface* ports not found"
-            Rails.logger.info "[rubygsm]: /dev/cu.LJADeviceInterface* ports not found"
+            #Rails.logger.info "[rubygsm]: /dev/cu.LJADeviceInterface* ports not found"
           else
             begin
               try_port = file_found.first.to_s
 
               #[khw] print a message
               puts "[rubygsm]: try port #{try_port}"
-              Rails.logger.info "[rubygsm]: try port #{try_port}"
+              #Rails.logger.info "[rubygsm]: try port #{try_port}"
 
               # serialport args: port, baud, data bits, stop bits, parity
               device = SerialPort.new(try_port, baud, 8, 1, SerialPort::NONE)
@@ -93,7 +93,7 @@ module Gsm
         end
 
         #[khw] print a message
-        Rails.logger.info "[rubygsm]: found port #{@port}"
+        #Rails.logger.info "[rubygsm]: found port #{@port}"
 
         # if the port was a port number or file
         # name, initialize a serialport object
@@ -1070,7 +1070,8 @@ module Gsm
         # always land at a CMGL line here) - they look like:
         #   +CMGL: 0,"REC READ","+13364130840",,"09/03/04,21:59:31-20"
         unless m = lines[n].match(/^\+CMGL: (\d+),"(.+?)","(.+?)",*?,"(.+?)".*?$/)
-          Rails.logger.error "Couldn't parse CMGL data: #{lines[n]}"
+          #Rails.logger.error "Couldn't parse CMGL data: #{lines[n]}"
+          puts "Couldn't parse CMGL data: #{lines[n]}"
           err = "Couldn't parse CMGL data: #{lines[n]}"
           raise RuntimeError.new(err)
         end
