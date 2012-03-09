@@ -54,7 +54,6 @@ module Gsm
 
                 #[khw] print a message
                 puts "[rubygsm]: try port #{try_port}"
-                #Rails.logger.info "[rubygsm]: try port #{try_port}"
 
                 # serialport args: port, baud, data bits, stop bits, parity
                 device = SerialPort.new(try_port, baud, 8, 1, SerialPort::NONE)
@@ -71,14 +70,12 @@ module Gsm
           file_found = Dir.glob("/dev/cu.LJADeviceInterface*")
           if (file_found.empty?)
             puts "[rubygsm]: /dev/cu.LJADeviceInterface* ports not found"
-            #Rails.logger.info "[rubygsm]: /dev/cu.LJADeviceInterface* ports not found"
           else
             begin
               try_port = file_found.first.to_s
 
               #[khw] print a message
               puts "[rubygsm]: try port #{try_port}"
-              #Rails.logger.info "[rubygsm]: try port #{try_port}"
 
               # serialport args: port, baud, data bits, stop bits, parity
               device = SerialPort.new(try_port, baud, 8, 1, SerialPort::NONE)
@@ -93,7 +90,7 @@ module Gsm
         end
 
         #[khw] print a message
-        #Rails.logger.info "[rubygsm]: found port #{@port}"
+        puts "[rubygsm]: found port #{@port}"
 
         # if the port was a port number or file
         # name, initialize a serialport object
@@ -164,6 +161,12 @@ module Gsm
       #Setting CSCS to "IRA" is necessary for sending SMS to work. Occassionally, the setting is USC2 after
       #powering up the modem
       command "AT+CSCS=\"IRA\""
+
+      #select the storage areas
+      # SMS reading&deleting: SM, which has space of 30 messages
+      # SMS sending&writing: ME, which has space of 0
+      # SMS status: SM, which has space of 30 messages
+      command "AT+CPMS=\"SM\",\"ME\",\"SM\""
     end #initialize()
 
 
@@ -1026,13 +1029,19 @@ module Gsm
               rescue StandardError => err
                 log "Error in callback: #{err}"
               end
-            end
+
+           end
 
             # we have dealt with all of the pending
             # messages. todo: this is a ridiculous
             # race condition, and i fail at ruby
             @incoming.clear
-          end
+
+            #delete all READ messages from the storage area
+	    try_command("AT+CMGD=,1")
+	    #check the available space in the storage area
+	    try_command("AT+CPMS?")
+           end
 
           # re-poll every
           # five seconds
@@ -1070,9 +1079,8 @@ module Gsm
         # always land at a CMGL line here) - they look like:
         #   +CMGL: 0,"REC READ","+13364130840",,"09/03/04,21:59:31-20"
         unless m = lines[n].match(/^\+CMGL: (\d+),"(.+?)","(.+?)",*?,"(.+?)".*?$/)
-          #Rails.logger.error "Couldn't parse CMGL data: #{lines[n]}"
-          puts "Couldn't parse CMGL data: #{lines[n]}"
-          err = "Couldn't parse CMGL data: #{lines[n]}"
+          puts "[rubygsm]: couldn't parse CMGL data: #{lines[n]}"
+          err = "couldn't parse CMGL data: #{lines[n]}"
           raise RuntimeError.new(err)
         end
 
