@@ -1074,6 +1074,34 @@ module Gsm
       # stored messages waiting, this done nothing!
       while n < lines.length
 
+        # fix or workaround for bug #47
+        # (http://spires_sms_app.lighthouseapp.com/projects/80171/tickets/47-modem_controller-crashed-due-to-incoming-att-msg)
+        # 
+        # rubygsm crashes when the incoming unsolicited message has extra CMTI info at the begnning
+        # "", "+CMTI: \"SM\",0", "", "+CMGL: 0,\"REC UNREAD\",\"7535\",,\"12/10/26,15:12:52-28\"", "AT&T Free Msg:..."
+        # which receiver reads as
+        # [receiver]         Read: "\r\n"
+        # [receiver]         Read: "+CMTI: \"SM\",0\r\n"
+        # [receiver]         Read: "\r\n"
+        # [receiver]         Read: "+CMGL: 0,\"REC UNREAD\",\"7535\",,\"12/10/26,15:12:52-28\"\r\n"
+        # [receiver]         Read: "AT&T Free Msg: your unlimited messaging pkg was not renewed on 10/26/12 due to lack of balance. Refill your GoPhone acct today and re-enroll in auto-renew.\r\n"
+        #
+        #
+        # as oppose to
+        # "", "+CMGL: 0,\"REC UNREAD\",\"28887777\",,\"12/09/26,17:00:53-28\"", "AT&T Free Msg:..." 
+        #
+        # [receiver]         Read: "\r\n"
+        # [receiver]         Read: "+CMGL: 0,\"REC UNREAD\",\"28887777\",,\"12/09/26,17:00:53-28\"\r\n"
+        # [receiver]         Read: "AT&T Free Msg: your unlimited messaging pkg was not renewed on 10/26/12 due to lack of balance. Refill your GoPhone acct today and re-enroll in auto-renew.\r\n"
+        #
+        # Two extra lines are added :"", "+CMTI: \"SM\",0",
+        # The workaround is if the string "CMTI" is detected in the current line (n), skip 2 lines to get to the CMGL line (n+2).
+        if m = lines[n].match(/^\+CMTI:/)
+          if (n + 2) < lines.length
+            n = n + 2          
+          end
+        end
+
         # attempt to parse the CMGL line (we're skipping
         # two lines at a time in this loop, so we will
         # always land at a CMGL line here) - they look like:
