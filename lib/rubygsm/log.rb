@@ -30,7 +30,13 @@ class Modem
 		else
 			filename = "rubygsm.log"
 		end
-		
+
+                if !@logdirname.nil?
+                        filename = @logdirname + "/" + filename
+                end
+
+		puts "[rubygsm]: open log file #{filename}"
+
 		# (re-) open the log file
 		@log = File.new filename, "w"
 		

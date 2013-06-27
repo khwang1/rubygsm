@@ -34,7 +34,9 @@ module Gsm
     # Create a new instance, to initialize and communicate exclusively with a
     # single modem device via the _port_ (which is usually either /dev/ttyS0
     # or /dev/ttyUSB0), and start logging to *rubygsm.log* in the chdir.
-    def initialize(port=:auto, verbosity=:warn, baud=9600, cmd_delay=0.1)
+    def initialize(logdirname=nil, port=:auto, verbosity=:warn, baud=9600, cmd_delay=0.1)
+
+      @logdirname = logdirname
 
       # if no port was specified, we'll attempt to iterate
       # all of the serial ports that i've ever seen gsm
