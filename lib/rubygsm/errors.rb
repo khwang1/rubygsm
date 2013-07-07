@@ -91,7 +91,7 @@ module Gsm
 			
 			# fall back to something not-so useful
 			return "Unknown error (unrecognized command?) " +\
-			       "[type=#{@type}] [code=#{code}]"
+			       "[type=#{@type}] [code=#{@code}]"
 		end
 	end
 	
