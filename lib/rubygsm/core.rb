@@ -147,6 +147,14 @@ module Gsm
       try_command "ATE0"      # echo off
       try_command "AT+CMEE=1" # useful errors
 
+      modem_manufacturer = query("AT+CGMI")
+      log "modem manufacturer = #{modem_manufacturer}"
+
+      if (modem_manufacturer.strip.downcase == "huawei") 
+	#[khw]: AT^CURC=0 to turn off unsolicited report on Huawei modem. 
+      	command "AT^CURC=0"
+      end
+
       #[khw]: AT+WIND command isn't supported by my Zoom modem, comment out this line
       #try_command "AT+WIND=0" # no notifications
 
@@ -156,7 +164,7 @@ module Gsm
       command "AT+CMGF=1"
       
       #select operator to AT&T mobility which is network code 310410
-      command "AT+COPS=0,2,\"310410\",2" #0=automatic selection, 2=numeric id, 310410, 2=current
+      #command "AT+COPS=0,2,\"310410\",2" #0=automatic selection, 2=numeric id, 310410, 2=current
       
       #select TE character set, which must be "IRA" for sending SMS to work
       #IRA is International Reference Alphabet. 
@@ -169,6 +177,7 @@ module Gsm
       # SMS sending&writing: ME, which has space of 0
       # SMS status: SM, which has space of 30 messages
       command "AT+CPMS=\"SM\",\"ME\",\"SM\""
+
     end #initialize()
 
 
@@ -395,7 +404,7 @@ module Gsm
         out = command!(cmd, *args)
 
       rescue Exception => err
-        log_then_decr "Rescued (in #command): #{err}"
+        log_then_decr "Rescued (in #command()): #{err}"
 
         if (tries += 1) <= @retry_commands
           delay = (2**tries)/2
@@ -414,7 +423,7 @@ module Gsm
           retry if reset!
 
           # failed to reboot :'(
-          log "Couldn't rese"
+          log "Couldn't reset"
           raise
 
         else
@@ -475,7 +484,7 @@ module Gsm
         # then automatically re-try the command after
         # a short delay. for others, propagate
       rescue Error => err
-        log_then_decr "Rescued (in #command!): #{err}"
+        log_then_decr "Rescued (in #command!()): #{err}"
 
         if (err.type == "CMS") and (err.code == 515)
           sleep 2
@@ -500,7 +509,7 @@ module Gsm
         return out
 
       rescue Error => err
-        log_then_decr "Rescued (in #try_command): #{err}"
+        log_then_decr "Rescued (in #try_command()): #{err}"
         return nil
       end
     end #try_command()
