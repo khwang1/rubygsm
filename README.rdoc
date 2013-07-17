@@ -45,3 +45,5 @@ ignore the Gem dependancy:
 === Devices Tested
 * Multitech MTCBA
 * Wavecom M1306B
+# ZOOM 4595
+# Huawei E303C
